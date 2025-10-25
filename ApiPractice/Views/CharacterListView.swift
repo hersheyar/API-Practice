@@ -19,13 +19,10 @@ struct CharactersListView: View {
                         .onAppear {
                             Task { await vm.firstLoad() }
                         }
-                    
                 case .loading:
                     ProgressView("Loading characters...")
-                    
                 case .loaded:
                     charactersList
-                    
                 case .failed(let error):
                     errorView(error)
                 }
@@ -33,9 +30,7 @@ struct CharactersListView: View {
             .navigationTitle("Rick & Morty")
             .searchable(text: $vm.searchText, prompt: "Search characters")
             .onChange(of: vm.searchText) { oldValue, newValue in
-                Task {
-                    await vm.applySearch()
-                }
+                Task { await vm.applySearch() }
             }
         }
     }
@@ -53,7 +48,6 @@ struct CharactersListView: View {
             .refreshable {
                 await vm.load(page: 1, name: vm.searchText.isEmpty ? nil : vm.searchText)
             }
-            
             paginationControls
         }
     }
@@ -113,7 +107,6 @@ struct CharactersListView: View {
         }
         .padding()
     }
-    
 
     private func getCurrentPage(info: Info) -> Int {
         if let next = info.next, let url = URL(string: next),
@@ -134,13 +127,11 @@ struct CharactersListView: View {
     }
 }
 
-
 struct CharacterRow: View {
     let character: RMCharacter
     
     var body: some View {
         HStack(spacing: 12) {
-            // Character Image
             AsyncImage(url: URL(string: character.image)) { phase in
                 switch phase {
                 case .empty:
@@ -179,7 +170,6 @@ struct CharacterRow: View {
                         .foregroundStyle(statusColor(for: character.status))
                 }
             }
-            
             Spacer()
         }
         .padding(.vertical, 4)
@@ -187,88 +177,9 @@ struct CharacterRow: View {
     
     private func statusColor(for status: String) -> Color {
         switch status.lowercased() {
-        case "alive":
-            return .green
-        case "dead":
-            return .red
-        default:
-            return .gray
-        }
-    }
-}
-
-struct CharacterDetailView: View {
-    let character: RMCharacter
-    @State private var note: String = ""
-    
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Character Image
-                AsyncImage(url: URL(string: character.image)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: 300)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                    default:
-                        ProgressView()
-                            .frame(height: 300)
-                    }
-                }
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(character.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    HStack {
-                        Label(character.status, systemImage: "heart.fill")
-                            .foregroundStyle(statusColor(for: character.status))
-                        
-                        Text("•")
-                            .foregroundStyle(.secondary)
-                        
-                        Text(character.species)
-                    }
-                    .font(.headline)
-                    
-                    Divider()
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("My Notes")
-                            .font(.headline)
-                        
-                        TextEditor(text: $note)
-                            .frame(minHeight: 100)
-                            .padding(8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                            .onChange(of: note) { _, newValue in
-                                CharacterNotes.save(newValue, for: character.id)
-                            }
-                    }
-                }
-                .padding()
-            }
-        }
-        .navigationTitle("Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            note = CharacterNotes.load(for: character.id)
-        }
-    }
-    
-    private func statusColor(for status: String) -> Color {
-        switch status.lowercased() {
-        case "alive":
-            return .green
-        case "dead":
-            return .red
-        default:
-            return .gray
+        case "alive": return .green
+        case "dead": return .red
+        default: return .gray
         }
     }
 }
